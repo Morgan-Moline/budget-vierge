@@ -1,0 +1,82 @@
+name: Shorebird Patch Android
+
+# Chaque push sur main qui touche le code Dart ou les données envoie un patch :
+# l'app installée se met à jour toute seule au prochain lancement.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lib/**'
+      - 'assets/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shorebird-patch
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+      HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check configuration
+        id: check
+        run: |
+          if [ ! -f shorebird.yaml ] || [ -z "$SHOREBIRD_TOKEN" ] || [ "$HAS_KEYSTORE" != "true" ]; then
+            echo "Shorebird pas encore configuré : patch ignoré."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Java
+        if: steps.check.outputs.skip != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Shorebird
+        if: steps.check.outputs.skip != 'true'
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: Configure Android signing
+        if: steps.check.outputs.skip != 'true'
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          test -n "$KEYSTORE_BASE64" || { echo "::error::Secret ANDROID_KEYSTORE_BASE64 manquant."; exit 1; }
+          echo "$KEYSTORE_BASE64" | base64 --decode > /tmp/mon-budget-release.jks
+          cat > android/key.properties <<PROPS
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=/tmp/mon-budget-release.jks
+          PROPS
+
+      - name: Set up Flutter
+        if: steps.check.outputs.skip != 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        if: steps.check.outputs.skip != 'true'
+        run: flutter pub get
+
+      - name: Publish OTA patch
+        if: steps.check.outputs.skip != 'true'
+        run: shorebird patch android --release-version latest --track=stable -- --no-tree-shake-icons

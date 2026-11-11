@@ -1,0 +1,155 @@
+import 'package:flutter/material.dart';
+
+import '../models.dart';
+import '../store.dart';
+
+/// One switch per optional module.
+class ModuleSwitches extends StatelessWidget {
+  const ModuleSwitches({super.key, required this.selected, required this.onChanged, this.hiddenCount});
+
+  final Set<Module> selected;
+  final void Function(Module m, bool on) onChanged;
+
+  /// Number of saved lines per module, shown when the module is off.
+  final int Function(Module m)? hiddenCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          for (final m in Module.values) ...[
+            if (m != Module.values.first) Divider(height: 1, color: cs.outlineVariant),
+            SwitchListTile(
+              value: selected.contains(m),
+              onChanged: (v) => onChanged(m, v),
+              title: Text(m.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text(_subtitle(m)),
+              isThreeLine: true,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _subtitle(Module m) {
+    final n = hiddenCount?.call(m) ?? 0;
+    if (!selected.contains(m) && n > 0) {
+      return '${m.description}\n$n ligne${n > 1 ? 's' : ''} gardée${n > 1 ? 's' : ''}, cachée${n > 1 ? 's' : ''} tant que le module est retiré.';
+    }
+    return m.description;
+  }
+}
+
+/// Lines saved in a module (shown in Réglages when the module is off).
+int linesIn(BudgetData d, Module m) => switch (m) {
+      Module.x4 => d.section('x4').length,
+      Module.emprunts => d.section('emprunts').length,
+      Module.credits => d.versements.length + (d.pretMontant > 0 ? 1 : 0),
+    };
+
+const _baseText = 'Toujours présents : Entrées, Charges fixes, Abonnements, Charges aléatoires, '
+    'Autres dépenses et l’onglet Mois suivant.';
+
+/// First launch: choose the optional modules.
+class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key, required this.store});
+
+  final BudgetStore store;
+
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  final _selected = <Module>{};
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
+          children: [
+            Text('Bienvenue', style: TextStyle(fontSize: 13, letterSpacing: 1, color: cs.onSurfaceVariant)),
+            const SizedBox(height: 4),
+            Text('Mon budget',
+                style: tt.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -.3)),
+            const SizedBox(height: 12),
+            const Text(
+              'Note tes entrées et tes dépenses du mois, coche ce qui est prélevé, et prépare le mois suivant. '
+              'Tes données restent sur ce téléphone.',
+            ),
+            const SizedBox(height: 20),
+            Text('De quoi as-tu besoin ?', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text('Active seulement ce qui te sert. Tu pourras changer à tout moment dans Réglages.',
+                style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+            const SizedBox(height: 12),
+            ModuleSwitches(
+              selected: _selected,
+              onChanged: (m, on) => setState(() => on ? _selected.add(m) : _selected.remove(m)),
+            ),
+            const SizedBox(height: 12),
+            Text(_baseText, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+            const SizedBox(height: 24),
+            FilledButton(
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+              onPressed: () => widget.store.update((d) {
+                d.modules
+                  ..clear()
+                  ..addAll(_selected);
+                d.onboarded = true;
+              }),
+              child: const Text('Commencer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Réglages: add or remove modules at any time.
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key, required this.store});
+
+  final BudgetStore store;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ListenableBuilder(
+      listenable: store,
+      builder: (context, _) => Scaffold(
+        appBar: AppBar(title: const Text('Réglages')),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            Text('Modules', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            ModuleSwitches(
+              selected: store.data.modules,
+              hiddenCount: (m) => linesIn(store.data, m),
+              onChanged: (m, on) => store.update((d) => on ? d.modules.add(m) : d.modules.remove(m)),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Retirer un module ne supprime rien : ses lignes sont cachées et ne comptent plus dans le budget. '
+              'Elles reviennent si tu le remets.',
+              style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
+            ),
+            const SizedBox(height: 8),
+            Text(_baseText, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+          ],
+        ),
+      ),
+    );
+  }
+}

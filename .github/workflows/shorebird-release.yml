@@ -1,0 +1,86 @@
+name: Shorebird Release Android
+
+# Construit l'APK signé à installer sur le téléphone.
+# À relancer seulement quand le code natif Android change ou quand tu montes
+# la version dans pubspec.yaml. Le reste passe par les patches.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check configuration
+        run: |
+          test -f shorebird.yaml || { echo "::error::Lance d'abord le workflow « Shorebird Init »."; exit 1; }
+          test -n "$SHOREBIRD_TOKEN" || { echo "::error::Secret SHOREBIRD_TOKEN manquant."; exit 1; }
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Shorebird
+        uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+
+      - name: Configure Android signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          test -n "$KEYSTORE_BASE64" || { echo "::error::Secret ANDROID_KEYSTORE_BASE64 manquant."; exit 1; }
+          echo "$KEYSTORE_BASE64" | base64 --decode > /tmp/mon-budget-release.jks
+          cat > android/key.properties <<PROPS
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=/tmp/mon-budget-release.jks
+          PROPS
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Create Shorebird release
+        run: shorebird release android --artifact apk --flutter-version 3.47.7 -- --no-tree-shake-icons
+
+      - name: Read version
+        id: version
+        run: echo "version=$(grep '^version:' pubspec.yaml | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Upload APK (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mon-budget-${{ steps.version.outputs.version }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: Publish GitHub release with the APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk "mon-budget-$VERSION.apk"
+          gh release create "v$VERSION" "mon-budget-$VERSION.apk" \
+            --title "Mon Budget $VERSION" \
+            --notes "APK à installer sur le téléphone. Les mises à jour suivantes arrivent par Shorebird au lancement de l'app." \
+          || gh release upload "v$VERSION" "mon-budget-$VERSION.apk" --clobber
