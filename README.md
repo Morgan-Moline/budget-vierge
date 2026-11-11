@@ -28,6 +28,11 @@ Aucune donnée au départ : chacun saisit les siennes, qui restent sur son tél�
 2. **Actions → Shorebird Init (une seule fois)**.
 3. **Actions → Shorebird Release Android** : l'APK apparaît dans **Releases**.
 
+## Version web (iPhone, sans App Store)
+Le workflow **Version web (GitHub Pages)** publie l'app sur `https://morgan-moline.github.io/budget-vierge/`
+à chaque modification (dépôt public et GitHub Pages réglé sur « GitHub Actions »).
+Sur iPhone : ouvrir le lien dans Safari → Partager → « Sur l'écran d'accueil ».
+
 ## Mises à jour
 Un push sur `main` qui touche `lib/` publie un patch Shorebird : l'app se met à jour au lancement suivant
 (fermer et rouvrir deux fois). Une modification de `android/` ou un nouveau plugin demande une nouvelle release.

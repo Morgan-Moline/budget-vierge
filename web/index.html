@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <!-- Replaced by the value of `flutter build web --base-href`. -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Un budget mensuel simple : entrées, dépenses, prélèvements et mois suivant.">
+  <meta name="theme-color" content="#0F7A55">
+
+  <!-- iPhone : ajout à l'écran d'accueil -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mon budget">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>Mon budget</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    html, body { margin: 0; height: 100%; background: #F3F4F8; }
+    @media (prefers-color-scheme: dark) { html, body { background: #0E1017; } #loading p { color: #959CB3; } }
+    #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; font-family: -apple-system, system-ui, sans-serif; }
+    #loading img { width: 88px; height: 88px; }
+    #loading p { margin: 0; color: #61687F; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <div id="loading"><img src="icons/logo.svg" alt=""><p>Chargement de Mon budget…</p></div>
+  <script>
+    // Hide the loading screen as soon as Flutter draws its first frame.
+    window.addEventListener('flutter-first-frame', function () {
+      var el = document.getElementById('loading'); if (el) el.remove();
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

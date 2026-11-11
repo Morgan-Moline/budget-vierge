@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../models.dart';
@@ -85,8 +86,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             const SizedBox(height: 12),
             const Text(
               'Note tes entrées et tes dépenses du mois, coche ce qui est prélevé, et prépare le mois suivant. '
-              'Tes données restent sur ce téléphone.',
+              'Tes données restent sur cet appareil.',
             ),
+            if (kIsWeb) ...[
+              const SizedBox(height: 16),
+              const InstallTip(),
+            ],
             const SizedBox(height: 20),
             Text('De quoi as-tu besoin ?', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
@@ -151,6 +156,7 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Text('Aide', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
+            if (kIsWeb) ...[const InstallTip(), const SizedBox(height: 10)],
             Card(
               margin: EdgeInsets.zero,
               clipBehavior: Clip.antiAlias,
@@ -177,3 +183,41 @@ Future<void> openTutorial(BuildContext context, BudgetStore store) => Navigator.
         builder: (c) => TutorialScreen(pages: tutoPages(store.data.modules), onDone: () => Navigator.pop(c)),
       ),
     );
+
+/// Web version only: how to put the app on the home screen (and keep the data).
+class InstallTip extends StatelessWidget {
+  const InstallTip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: cs.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(Icons.add_to_home_screen, color: cs.onPrimaryContainer),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('Installe l’app sur ton écran d’accueil',
+                    style: TextStyle(fontWeight: FontWeight.w700, color: cs.onPrimaryContainer)),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Text(
+              'iPhone : dans Safari, touche Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ».\n'
+              'Android : dans Chrome, menu ⋮ puis « Ajouter à l’écran d’accueil » ou « Installer l’application ».\n\n'
+              'L’app s’ouvre alors en plein écran, et tes données restent bien gardées sur ton téléphone. '
+              'Pense quand même à copier une sauvegarde de temps en temps (menu ⋮).',
+              style: TextStyle(color: cs.onPrimaryContainer, height: 1.4),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
