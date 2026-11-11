@@ -104,10 +104,7 @@ class NextMonthScreen extends StatelessWidget {
     if (!l.onlyNext && l.next != null) parts.add('Ce mois-ci : ${money(l.amount)}');
     final endIdx = parseMonthIndex(l.end);
     if (sec.end != EndKind.none && endIdx != null) {
-      final r = remainingMonths(l, month)!;
-      parts.add(sec.end == EndKind.date
-          ? 'Dernière échéance ${dateShort(l.end!)} · $r restante${r > 1 ? 's' : ''}'
-          : 'Fin ${monthAbbr(endIdx)} · $r mois');
+      parts.add(endSummary(l, sec.end, month));
     }
     return parts.isEmpty ? null : parts.join(' · ');
   }

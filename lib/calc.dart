@@ -19,11 +19,12 @@ bool isActive(Line l, int currentMonth) {
   return e == null || e >= currentMonth;
 }
 
-/// Payments left, this month included. Null when the line has no end date.
+/// Payments left AFTER [currentMonth] (the current month is already in the budget).
+/// 0 means the last payment is this month. Null when the line has no end date.
 int? remainingMonths(Line l, int currentMonth) {
   final e = parseMonthIndex(l.end);
   if (e == null) return null;
-  final r = e - currentMonth + 1;
+  final r = e - currentMonth;
   return r < 0 ? 0 : r;
 }
 

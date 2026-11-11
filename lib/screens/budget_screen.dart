@@ -269,10 +269,7 @@ class SectionLinesCard extends StatelessWidget {
       if (!active) {
         small = 'Terminé en ${monthAbbr(endIdx)}';
       } else {
-        final r = remainingMonths(l, current)!;
-        small = sec.end == EndKind.date
-            ? 'Dernière échéance ${dateShort(l.end!)} · $r restante${r > 1 ? 's' : ''}'
-            : 'Fin ${monthAbbr(endIdx)} · $r mois · ${money(r * (l.amount ?? 0))} restants';
+        small = endSummary(l, sec.end, current);
       }
     } else if (l.expr != null) {
       small = l.expr!.replaceAll('.', ',').replaceAll('*', '×');

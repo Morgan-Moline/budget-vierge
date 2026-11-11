@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:mon_budget/format.dart';
 import 'package:mon_budget/calc.dart';
 import 'package:mon_budget/models.dart';
 
@@ -143,6 +145,18 @@ void main() {
     expect(apres.reste, avant.reste);
     rolloverIfNeeded(d, DateTime(2026, 12, 1));
     expect(d.section('x4').last.paid, isFalse);
+  });
+
+  test('échéances restantes : le mois en cours ne compte plus', () async {
+    await initializeDateFormatting('fr_FR');
+    final d = exemple();
+    final cur = monthIndexOf(nov);
+    final telephone = d.section('x4').first, canape = d.section('x4').last;
+    expect(remainingMonths(telephone, cur), 0);
+    expect(endSummary(telephone, EndKind.date, cur), startsWith('Fini'));
+    expect(remainingMonths(canape, cur), 3); // décembre, janvier, février
+    expect(endSummary(canape, EndKind.date, cur), endsWith('3 restantes'));
+    expect(remainingMonths(d.section('emprunts').first, cur), 13);
   });
 }
 

@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import 'calc.dart';
+import 'models.dart';
 
 final _eur = NumberFormat.currency(locale: 'fr_FR', symbol: '€', decimalDigits: 2);
 
@@ -45,4 +46,20 @@ String dateShort(String s) {
 String dateLong(String s) {
   final d = parseDate(s);
   return d == null ? s : DateFormat('d MMMM y', 'fr_FR').format(d);
+}
+
+/// End-of-payment line under a 4× payment or a loan, seen from [month]:
+/// "Fini · dernière échéance 1 nov. 2026", "Dernière échéance 15 févr. 2027 · 3 restantes",
+/// "Fin déc. 2027 · 13 mois restants · 884,00 €".
+String endSummary(Line l, EndKind kind, int month) {
+  final endIdx = parseMonthIndex(l.end)!;
+  final r = remainingMonths(l, month)!;
+  if (kind == EndKind.date) {
+    return r == 0
+        ? 'Fini · dernière échéance ${dateShort(l.end!)}'
+        : 'Dernière échéance ${dateShort(l.end!)} · $r restante${r > 1 ? 's' : ''}';
+  }
+  return r == 0
+      ? 'Fini · dernière mensualité en ${monthAbbr(endIdx)}'
+      : 'Fin ${monthAbbr(endIdx)} · $r mois restant${r > 1 ? 's' : ''} · ${money(r * (l.amount ?? 0))}';
 }
