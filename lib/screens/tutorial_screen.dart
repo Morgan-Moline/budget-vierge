@@ -29,7 +29,7 @@ const _intro = <TutoPage>[
   TutoPage(
     Icons.task_alt,
     'Coche ce qui est prélevé',
-    'Dans les charges fixes et les abonnements, coche une ligne quand elle est sortie de ton compte.\n\n'
+    'Dans les charges fixes, les abonnements, les paiements en 4× et les emprunts, coche une ligne quand elle est sortie de ton compte.\n\n'
         'La barre en haut montre ce qui est déjà prélevé et ce qu’il reste à prélever.',
   ),
   TutoPage(
@@ -52,7 +52,7 @@ const _modulePages = <Module, TutoPage>{
   Module.x4: TutoPage(
     Icons.credit_card,
     'Paiements en 4×',
-    'Note le montant d’une échéance et la date de la dernière.\n\n'
+    'Note le montant d’une échéance et la date de la dernière. Coche-la quand elle est prélevée.\n\n'
         'La ligne compte chaque mois jusqu’à cette date, puis disparaît toute seule.',
   ),
   Module.emprunts: TutoPage(

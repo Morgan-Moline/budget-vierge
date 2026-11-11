@@ -131,4 +131,18 @@ void main() {
     expect(d.modules, isEmpty);
     expect(computeTotals(d, nov).reste, 0);
   });
+
+  test('les paiements en 4× se cochent et se décochent le 1er du mois', () {
+    final d = exemple();
+    rolloverIfNeeded(d, nov);
+    final avant = computeTotals(d, nov);
+    d.section('x4').last.paid = true; // Canapé, 100 €
+    final apres = computeTotals(d, nov);
+    expect(apres.paidCount, avant.paidCount + 1);
+    expect(apres.checkPaid - avant.checkPaid, 100);
+    expect(apres.reste, avant.reste);
+    rolloverIfNeeded(d, DateTime(2026, 12, 1));
+    expect(d.section('x4').last.paid, isFalse);
+  });
 }
+

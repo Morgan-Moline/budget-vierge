@@ -47,12 +47,12 @@ class BudgetScreen extends StatelessWidget {
                 context,
                 title: 'Commencer un nouveau mois',
                 message:
-                    'Toutes les cases « prélevé » des charges fixes, abonnements et emprunts seront décochées. Les montants ne changent pas.',
+                    'Toutes les cases « prélevé » des charges fixes, abonnements, paiements en 4× et emprunts seront décochées. Les montants ne changent pas.',
                 okLabel: 'Tout décocher',
               );
               if (!ok) return;
               store.update((d) {
-                for (final k in ['fixes', 'abonnements', 'emprunts']) {
+                for (final k in ['fixes', 'abonnements', 'x4', 'emprunts']) {
                   for (final l in d.section(k)) {
                     l.paid = false;
                   }

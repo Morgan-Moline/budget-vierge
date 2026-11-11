@@ -144,7 +144,7 @@ const sections = <SectionDef>[
   SectionDef('entrees', 'Entrées', income: true, subtitle: 'Salaire, aides et revenus du mois'),
   SectionDef('fixes', 'Charges fixes', check: true),
   SectionDef('abonnements', 'Abonnements', check: true),
-  SectionDef('x4', 'Paiements en 4×', end: EndKind.date, module: Module.x4),
+  SectionDef('x4', 'Paiements en 4×', check: true, end: EndKind.date, module: Module.x4),
   SectionDef('emprunts', 'Emprunts', check: true, end: EndKind.month, module: Module.emprunts),
   SectionDef('aleatoires', 'Charges aléatoires'),
   SectionDef('autres', 'Autres dépenses'),
