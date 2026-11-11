@@ -1,11 +1,13 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'calc.dart';
 import 'format.dart';
 import 'models.dart';
+import 'backup/file_backup.dart';
+import 'screens/backup_screen.dart';
 import 'screens/budget_screen.dart';
 import 'screens/credits_screen.dart';
 import 'screens/next_screen.dart';
@@ -18,6 +20,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('fr_FR');
   final store = await BudgetStore.load();
+  if (kIsWeb) requestPersistentStorage();
   runApp(BudgetApp(store: store));
 }
 
@@ -87,7 +90,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-enum _Menu { settings, tuto, backup, restore, erase }
+enum _Menu { settings, tuto, backup, erase }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _tab = 0;
@@ -182,10 +185,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       child: ListTile(leading: Icon(Icons.school_outlined), title: Text('Revoir le tuto'))),
                   PopupMenuItem(
                       value: _Menu.backup,
-                      child: ListTile(leading: Icon(Icons.copy_all_outlined), title: Text('Copier une sauvegarde'))),
-                  PopupMenuItem(
-                      value: _Menu.restore,
-                      child: ListTile(leading: Icon(Icons.restore_page_outlined), title: Text('Restaurer une sauvegarde'))),
+                      child: ListTile(leading: Icon(Icons.save_outlined), title: Text('Sauvegarde'))),
                   PopupMenuItem(
                       value: _Menu.erase,
                       child: ListTile(leading: Icon(Icons.delete_outline), title: Text('Tout effacer'))),
@@ -212,39 +212,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       case _Menu.tuto:
         await openTutorial(context, store);
       case _Menu.backup:
-        await Clipboard.setData(ClipboardData(text: store.exportJson()));
-        if (context.mounted) {
-          toast(context, 'Sauvegarde copiée. Colle-la dans une note ou un mail pour la garder.');
-        }
-      case _Menu.restore:
-        final ctrl = TextEditingController();
-        final text = await showDialog<String>(
-          context: context,
-          builder: (c) => AlertDialog(
-            title: const Text('Restaurer une sauvegarde'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Colle ici le texte copié avec « Copier une sauvegarde ». Ton budget actuel sera remplacé.'),
-                const SizedBox(height: 12),
-                TextField(controller: ctrl, maxLines: 6, decoration: const InputDecoration(hintText: '{ … }')),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(c), child: const Text('Annuler')),
-              FilledButton(onPressed: () => Navigator.pop(c, ctrl.text), child: const Text('Restaurer')),
-            ],
-          ),
-        );
-        ctrl.dispose();
-        if (text == null || !context.mounted) return;
-        final ok = store.importJson(text);
-        toast(context, ok ? 'Sauvegarde restaurée' : 'Ce texte n’est pas une sauvegarde du budget.');
+        await openBackup(context, store);
       case _Menu.erase:
         final ok = await confirmAction(
           context,
           title: 'Tout effacer',
-          message: 'Toutes les lignes et tous les montants seront supprimés. Pense à copier une sauvegarde avant si tu veux les garder.',
+          message: 'Toutes les lignes et tous les montants seront supprimés. Pense à faire une sauvegarde avant (menu ⋮ → Sauvegarde) si tu veux les garder.',
           okLabel: 'Tout effacer',
           danger: true,
         );

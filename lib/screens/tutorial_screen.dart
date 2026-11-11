@@ -73,7 +73,8 @@ const _outro = TutoPage(
   Icons.tune,
   'Modules et sauvegarde',
   'Menu ⋮ → Réglages : ajoute ou retire les paiements en 4×, les emprunts et l’onglet Crédits.\n\n'
-      'Menu ⋮ → Copier une sauvegarde : garde une copie de ton budget dans une note ou un mail.\n\n'
+      'Menu ⋮ → Sauvegarde : télécharge un fichier de ton budget et range-le à l’abri (Fichiers, iCloud, Drive, mail). '
+      'Avec ce fichier, tu retrouves tout sur un autre téléphone ou si les données sont effacées.\n\n'
       'Tu peux revoir ce tuto à tout moment dans le menu ⋮.',
 );
 

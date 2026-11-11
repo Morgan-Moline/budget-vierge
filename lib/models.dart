@@ -169,6 +169,8 @@ class BudgetData {
     Set<Module>? modules,
     this.onboarded = false,
     this.tutoSeen = false,
+    this.lastBackup = '',
+    this.backupSnooze = '',
   })  : lines = lines ?? {for (final s in sections) s.key: <Line>[]},
         versements = versements ?? [],
         modules = modules ?? <Module>{};
@@ -194,6 +196,12 @@ class BudgetData {
 
   /// False until the tutorial has been seen once (or skipped).
   bool tutoSeen;
+
+  /// Date of the last backup ("YYYY-MM-DD"), empty if never.
+  String lastBackup;
+
+  /// The backup reminder stays hidden until this date ("YYYY-MM-DD").
+  String backupSnooze;
 
   bool has(Module m) => modules.contains(m);
 
@@ -225,6 +233,8 @@ class BudgetData {
       modules: {for (final m in Module.values) if (mods.contains(m.name)) m},
       onboarded: j['onboarded'] == true,
       tutoSeen: j['tutoSeen'] == true,
+      lastBackup: (j['lastBackup'] as String?) ?? '',
+      backupSnooze: (j['backupSnooze'] as String?) ?? '',
     );
   }
 
@@ -233,6 +243,8 @@ class BudgetData {
         'month': month,
         'onboarded': onboarded,
         'tutoSeen': tutoSeen,
+        'lastBackup': lastBackup,
+        'backupSnooze': backupSnooze,
         'modules': [for (final m in Module.values) if (modules.contains(m)) m.name],
         for (final s in sections) s.key: section(s.key).map((e) => e.toJson()).toList(),
         'compte': {'positif': positif, 'decouvert': decouvert},

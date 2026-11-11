@@ -6,6 +6,7 @@ import '../models.dart';
 import '../store.dart';
 import '../widgets/common.dart';
 import '../widgets/edit_sheet.dart';
+import 'backup_screen.dart';
 import 'line_editor.dart';
 
 class BudgetScreen extends StatelessWidget {
@@ -22,6 +23,7 @@ class BudgetScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
+        if (needsBackupReminder(d, now)) ...[BackupBanner(store: store), const SizedBox(height: 12)],
         _Hero(totals: t, data: d),
         const SizedBox(height: 12),
         Row(

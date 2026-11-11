@@ -212,7 +212,7 @@ class InstallTip extends StatelessWidget {
               'iPhone : dans Safari, touche Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ».\n'
               'Android : dans Chrome, menu ⋮ puis « Ajouter à l’écran d’accueil » ou « Installer l’application ».\n\n'
               'L’app s’ouvre alors en plein écran, et tes données restent bien gardées sur ton téléphone. '
-              'Pense quand même à copier une sauvegarde de temps en temps (menu ⋮).',
+              'Pense quand même à faire une sauvegarde de temps en temps (menu ⋮ → Sauvegarde).',
               style: TextStyle(color: cs.onPrimaryContainer, height: 1.4),
             ),
           ],
