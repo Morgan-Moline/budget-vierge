@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models.dart';
 import '../store.dart';
+import 'tutorial_screen.dart';
 
 /// One switch per optional module.
 class ModuleSwitches extends StatelessWidget {
@@ -147,9 +148,32 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(_baseText, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+            const SizedBox(height: 24),
+            Text('Aide', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                leading: const Icon(Icons.school_outlined),
+                title: const Text('Revoir le tuto', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: const Text('Les fonctionnalités de l’app, page par page.'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => openTutorial(context, store),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+
+/// Shows the tutorial again (from the menu or Réglages), with a page per active module.
+Future<void> openTutorial(BuildContext context, BudgetStore store) => Navigator.push(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (c) => TutorialScreen(pages: tutoPages(store.data.modules), onDone: () => Navigator.pop(c)),
+      ),
+    );

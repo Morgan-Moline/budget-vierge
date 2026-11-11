@@ -84,7 +84,7 @@ class BudgetStore extends ChangeNotifier {
   /// Erases every line and amount; keeps the chosen modules.
   Future<void> eraseAll() async {
     final modules = {...data.modules};
-    data = BudgetData(modules: modules, onboarded: true);
+    data = BudgetData(modules: modules, onboarded: true, tutoSeen: true);
     rolloverIfNeeded(data, DateTime.now());
     notifyListeners();
     await _save();

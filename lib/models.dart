@@ -168,6 +168,7 @@ class BudgetData {
     List<Versement>? versements,
     Set<Module>? modules,
     this.onboarded = false,
+    this.tutoSeen = false,
   })  : lines = lines ?? {for (final s in sections) s.key: <Line>[]},
         versements = versements ?? [],
         modules = modules ?? <Module>{};
@@ -190,6 +191,9 @@ class BudgetData {
 
   /// False until the first-launch screen has been completed.
   bool onboarded;
+
+  /// False until the tutorial has been seen once (or skipped).
+  bool tutoSeen;
 
   bool has(Module m) => modules.contains(m);
 
@@ -220,6 +224,7 @@ class BudgetData {
           : [],
       modules: {for (final m in Module.values) if (mods.contains(m.name)) m},
       onboarded: j['onboarded'] == true,
+      tutoSeen: j['tutoSeen'] == true,
     );
   }
 
@@ -227,6 +232,7 @@ class BudgetData {
         'v': 1,
         'month': month,
         'onboarded': onboarded,
+        'tutoSeen': tutoSeen,
         'modules': [for (final m in Module.values) if (modules.contains(m)) m.name],
         for (final s in sections) s.key: section(s.key).map((e) => e.toJson()).toList(),
         'compte': {'positif': positif, 'decouvert': decouvert},

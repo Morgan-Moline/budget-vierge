@@ -10,6 +10,7 @@ import 'screens/budget_screen.dart';
 import 'screens/credits_screen.dart';
 import 'screens/next_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/tutorial_screen.dart';
 import 'store.dart';
 import 'widgets/common.dart';
 
@@ -62,8 +63,16 @@ class BudgetApp extends StatelessWidget {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: ListenableBuilder(
         listenable: store,
-        builder: (context, _) =>
-            store.data.onboarded ? HomePage(store: store) : WelcomeScreen(store: store),
+        builder: (context, _) {
+          if (!store.data.tutoSeen) {
+            return TutorialScreen(
+              pages: tutoPages(store.data.modules),
+              doneLabel: store.data.onboarded ? 'Terminer' : 'Choisir mes modules',
+              onDone: () => store.update((d) => d.tutoSeen = true),
+            );
+          }
+          return store.data.onboarded ? HomePage(store: store) : WelcomeScreen(store: store);
+        },
       ),
     );
   }
@@ -78,7 +87,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-enum _Menu { settings, backup, restore, erase }
+enum _Menu { settings, tuto, backup, restore, erase }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _tab = 0;
@@ -169,6 +178,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       value: _Menu.settings,
                       child: ListTile(leading: Icon(Icons.tune), title: Text('Réglages (modules)'))),
                   PopupMenuItem(
+                      value: _Menu.tuto,
+                      child: ListTile(leading: Icon(Icons.school_outlined), title: Text('Revoir le tuto'))),
+                  PopupMenuItem(
                       value: _Menu.backup,
                       child: ListTile(leading: Icon(Icons.copy_all_outlined), title: Text('Copier une sauvegarde'))),
                   PopupMenuItem(
@@ -197,6 +209,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     switch (m) {
       case _Menu.settings:
         await Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsScreen(store: store)));
+      case _Menu.tuto:
+        await openTutorial(context, store);
       case _Menu.backup:
         await Clipboard.setData(ClipboardData(text: store.exportJson()));
         if (context.mounted) {
